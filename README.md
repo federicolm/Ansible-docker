@@ -47,36 +47,27 @@ Per creare il file di kickstart senza dover necessariamente scriverlo interament
 
 Con un'installazione minimale di CentOS verrà generato il seguente file di kickstart : 
 
-#version=DEVEL
-# System authorization information
 auth --enableshadow --passalgo=sha512
-# Use CDROM installation media
 cdrom
-# Use graphical install
 graphical
-# Run the Setup Agent on first boot
 firstboot --enable
 ignoredisk --only-use=sda
-# Keyboard layouts
 keyboard --vckeymap=it --xlayouts='it'
-# System language
 lang it_IT.UTF-8
 
-# Network information
 network  --bootproto=static --device=eth0 --gateway=aaa.bbb.ccc.ddd --ip=aaa.bbb.ccc.ddd --nameserver=aaa.bbb.ccc.ddd --netmask=aaa.bbb.ccc.ddd--ipv6=auto --activate
 network  --hostname=localhost.localdomain
 
-# Root password
 rootpw --iscrypted $6$11UpsqSMu7tmUxYb$I9wtgMop1i2fExnYCIKxyL30YyHkZ202EqKKEnJmIBK07q8c2iW1QxF8gWvPvKwDjtrri.KJg2GMLqf4T8ubn.
-# System services
+
 services --enabled="chronyd"
-# System timezone
+
 timezone Europe/Rome --isUtc
 
-# System bootloader configuration
+
 bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
 autopart --type=lvm
-# Partition clearing information
+
 clearpart --none --initlabel
 
 %packages
@@ -101,14 +92,99 @@ pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
 
 Le primissime aggiunte da effettuare sono le seguenti : 
 
-# Reboot after install
 reboot
-# Accept Eula altrimenti con l'installazione grafica si rimane bloccati senza riuscire a spuntare l'accettazione della licenza e l'installazione dopo il riavvio non si conclude
+
 eula --agreed
 
 
 %post
 
+cat >/etc/yum.repos.d/docker-ce.repo <<EOF
+[docker-ce-stable]
+name=Docker CE Stable - $basearch
+baseurl=https://download.docker.com/linux/centos/7/$basearch/stable
+enabled=1
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-stable-debuginfo]
+name=Docker CE Stable - Debuginfo $basearch
+baseurl=https://download.docker.com/linux/centos/7/debug-$basearch/stable
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-stable-source]
+name=Docker CE Stable - Sources
+baseurl=https://download.docker.com/linux/centos/7/source/stable
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-edge]
+name=Docker CE Edge - $basearch
+baseurl=https://download.docker.com/linux/centos/7/$basearch/edge
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-edge-debuginfo]
+name=Docker CE Edge - Debuginfo $basearch
+baseurl=https://download.docker.com/linux/centos/7/debug-$basearch/edge
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-edge-source]
+name=Docker CE Edge - Sources
+baseurl=https://download.docker.com/linux/centos/7/source/edge
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-test]
+name=Docker CE Test - $basearch
+baseurl=https://download.docker.com/linux/centos/7/$basearch/test
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-test-debuginfo]
+name=Docker CE Test - Debuginfo $basearch
+baseurl=https://download.docker.com/linux/centos/7/debug-$basearch/test
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-test-source]
+name=Docker CE Test - Sources
+baseurl=https://download.docker.com/linux/centos/7/source/test
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-nightly]
+name=Docker CE Nightly - $basearch
+baseurl=https://download.docker.com/linux/centos/7/$basearch/nightly
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-nightly-debuginfo]
+name=Docker CE Nightly - Debuginfo $basearch
+baseurl=https://download.docker.com/linux/centos/7/debug-$basearch/nightly
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+[docker-ce-nightly-source]
+name=Docker CE Nightly - Sources
+baseurl=https://download.docker.com/linux/centos/7/source/nightly
+enabled=0
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+
+EOF
 
 yum -y update
 %end
