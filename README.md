@@ -90,12 +90,15 @@ pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --emptyok
 pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
 %end
 
-Le primissime aggiunte da effettuare sono le seguenti : 
+
+
+Le primissime aggiunte da effettuare sono le seguenti, le inseriremo nella prima parte del file di kickstart : 
 
 reboot
 
 eula --agreed
 
+; aggiungiamo una parte di post che verrà eseguita nella post-installazione della distribuzione, cioè dopo il primo riavvio.
 
 %post
 
@@ -187,4 +190,9 @@ gpgkey=https://download.docker.com/linux/centos/gpg
 EOF
 
 yum -y update
+yum -y install docker
+
+systemctl start docker
+systemctl enable docker
+
 %end
