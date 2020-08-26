@@ -196,3 +196,59 @@ systemctl start docker
 systemctl enable docker
 
 %end
+
+
+
+Per la parte di creazione delle vm in Proxmox i comandi da eseguire su un nodo di proxmox sono i seguenti : 
+
+- prima si crea il disco della vm : 
+
+pvesm alloc cephsdata_storage 105 'vm-105-disk-0' 10G ;
+
+Spiegazione del comando 
+
+pvesm alloc : si vuole allocare dello storage
+cephsdata_storage : specifica la location dello storage dove vogliamo/possiamo creare lo storage per la vm
+105 : è l'id univoco che distingue le vm dentro proxmox
+vm-105-disk-0 : è il nome del file del disco
+10G : rappresenta la dimensione del disco
+
+Una volta creato il disco si può procedere a creare la vm con il seguente comando : 
+
+qm create 105 --name vm105 --autostart 1 --balloon 1024 --memory 2048 --sockets 1 --cores 2 --keyboard it --numa 1 --ostype l26 --start 1 --storage cephsdata_storage --cdrom cephfs:iso/Centos7Kickstart.iso --scsihw virtio-scsi-pci --scsi0 cephsdata_storage:vm-105-disk-0,size=10G --net0 model=virtio,bridge=vmbr0,firewall=1 ;
+
+le parti importanti del comando di creazione della vm sono i seguenti : 
+
+105 : id univoco dentro proxmox della vm che si vuole creare
+--name vm105 : nome della vm
+--autostart 1 : avvio automatico della vm
+--start 1 : avvio della vm una volta terminata la creazione della stessa
+--storage cephsdata_storage : specifica quale storage utilizzare per memorizzare la vm, nel nostro caso il cluster ceph presente su tutti i nodi
+--cdrom cephfs:iso/Centos7Kickstart.iso : dov'è presente l'iso centos cucinata con le modifiche di cui sopra
+--scsi0 cephsdata_storage:vm-105-disk-0,size=10G : i riferimenti al disco da utilizzare
+
+
+
+Per la parte di Ansible,
+possiamo pensare ad una seguente struttura : 
+
+hosts
+playbooks
+|──proxmox_deploy.yml
+roles
+|──proxmox_deploy
+|
+| ── defaults
+| |
+| ── main.yml
+| ── meta
+| |
+| ── main.yml
+| ── tasks
+| |
+| ── main.yml
+| ── vars
+| |
+| ── main.yml
+| ── travis.yml
+
